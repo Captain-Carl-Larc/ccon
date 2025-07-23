@@ -105,4 +105,45 @@ const getUserProfile = async (req, res) => {
     
   }}
 
-module.exports = { registerUser, loginUser, getUserProfile };
+  //update user profile
+  const updateProfile = async (req,res)=>{
+    const userId = req.params.userId
+
+    if(!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    if(!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
+
+    try {
+        const { fullName, university, course, bio } = req.body;
+
+        // perform update
+        const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          { fullName, university, course, bio },
+          { new: true, runValidators: true }
+        ).select("-password"); // Exclude password from the response
+
+        res.status(200).json({
+          message: "User profile updated successfully",
+          user: {
+            id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            fullName: updatedUser.fullName,
+            university: updatedUser.university,
+            course: updatedUser.course,
+            bio: updatedUser.bio,
+          },
+        });
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+        
+    }
+  }
+
+module.exports = { registerUser, loginUser, getUserProfile, updateProfile };
