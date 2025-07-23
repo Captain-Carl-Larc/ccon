@@ -29,7 +29,7 @@ router.put('/profile', updateProfile);
 router.post('/follow/:userId', followUser);
 
 // Get user profile by username
-router.get('/profile/:username', getUserProfile);
+router.get("/profile/:userId", getUserProfile);
 
 // Unfollow user route
 router.delete('/unfollow/:userId', unfollowUser);
