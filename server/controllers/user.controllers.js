@@ -83,7 +83,7 @@ const loginUser = async (req, res) => {
 };
 
 //GET USER PROFILE
-const getUserProfile = async (req, res) => {
+const getOwnProfile = async (req, res) => {
   const userId = req.params.id;
 
   if(!userId) {
@@ -146,4 +146,47 @@ const getUserProfile = async (req, res) => {
     }
   }
 
-module.exports = { registerUser, loginUser, getUserProfile, updateProfile };
+  //get a user's profile
+  const getUserProfile = async(req,res)=>{
+    const userId = req.params.userId;
+
+    if(!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    if(!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
+
+    try {
+      const user = await User.findById(userId)
+        .select("-password") // Exclude password from the response
+        .populate("followers following", "username email") // Populate followers and following with username and email
+        .exec();
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.status(200).json({
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          fullName: user.fullName,
+          university: user.university,
+          course: user.course,
+          bio: user.bio,
+          profilePicture: user.profilePicture,
+          coverPhoto: user.coverPhoto,
+          followersCount: user.followers.length,
+          followingCount: user.following.length,
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+
+module.exports = { registerUser, loginUser, getOwnProfile, updateProfile };
