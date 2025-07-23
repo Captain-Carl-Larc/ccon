@@ -1,5 +1,29 @@
+# node modules
+node_modules/
+npm-debug.log
+
+# .env files
 .env
 
-node_modules
-npm-debug.log
+# Mac-specific files
 .DS_Store
+
+# IDE and editor files
+.vscode/
+.idea/
+
+# log files
+logs/
+
+# temporary files
+tmp/
+
+# pnpm cache
+.pnpm/
+
+# other cache files
+yarn-debug.log
+yarn-error.log
+
+# .gitignore itself
+.gitignore
