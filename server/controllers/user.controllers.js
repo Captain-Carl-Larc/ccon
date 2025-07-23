@@ -145,7 +145,157 @@ const updateProfile = async (req, res) => {
   }
 };
 
+//get a user's profile
+const getUserProfile = async (req, res) => {
+  const userId = req.params.userId;
 
+  if (!userId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid User ID" });
+  }
+
+  try {
+    const user = await User.findById(userId)
+      .select("-password") // Exclude password from the response
+      .populate("followers following", "username email") // Populate followers and following with username and email
+      .exec();
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        university: user.university,
+        course: user.course,
+        bio: user.bio,
+        profilePicture: user.profilePicture,
+        coverPhoto: user.coverPhoto,
+        followersCount: user.followers.length,
+        followingCount: user.following.length,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//follow user
+const followUser = async (req, res) => {
+  const userIdToFollow = req.params.body;
+  const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
+
+  //check the id
+  if (!mongoose.Types.ObjectId.isValid(userIdToFollow)) {
+    res.status(400).json({
+      message: `${userIdToFollow} is an invalid id.`,
+    });
+  }
+  if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
+    res.status(400).json({
+      message: `${currentUserId} is an invalid id.`,
+    });
+  }
+
+  //check if the user is trying to follow themselves
+  if (userIdToFollow === currentUserId) {
+    return res.status(400).json({ message: "You cannot follow yourself" });
+  }
+
+  //try catch block to handle errors
+  try {
+    //get existing values of the user
+    const currentUser = await User.findById(currentUserId);
+    const userToFollow = await User.findById(userIdToFollow);
+
+    //see if both users exist
+    if (!currentUser || !userToFollow) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    //check if the user is already following
+    if (currentUser.following.includes(userIdToFollow)) {
+      return res
+        .status(400)
+        .json({ message: "You are already following this user" });
+    }
+
+    //add the user to the following list
+    currentUser.following.push(userIdToFollow);
+    userToFollow.followers.push(currentUserId);
+    await currentUser.save();
+    await userToFollow.save();
+    res.status(200).json({
+      message: `You are now following ${userToFollow.username}`,
+      followingCount: currentUser.following.length,
+      followersCount: userToFollow.followers.length,
+    });
+  } catch (error) {
+    console.error("Error following user:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//unfollow user
+const unfollowUser = async (req, res) => {
+    const userIdToUnfollow = req.params.body;
+    const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
+
+    //check the id
+    if (!mongoose.Types.ObjectId.isValid(userIdToUnfollow)) {
+      return res.status(400).json({
+        message: `${userIdToUnfollow} is an invalid id.`,
+      });
+    }
+    if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
+      return res.status(400).json({
+        message: `${currentUserId} is an invalid id.`,
+      });
+    }
+
+    //check if the user is trying to unfollow themselves
+    if (userIdToUnfollow === currentUserId) {
+      return res.status(400).json({ message: "You cannot unfollow yourself" });
+    }
+    //try catch block to handle errors
+    try {
+      //get existing values of the user
+      const currentUser = await User.findById(currentUserId);
+      const userToUnfollow = await User.findById(userIdToUnfollow);
+        //see if both users exist
+        if (!currentUser || !userToUnfollow) {
+          return res.status(404).json({ message: "User not found" });
+        }   
+
+        //check if the user is already following
+        if (!currentUser.following.includes(userIdToUnfollow)) {
+          return res
+            .status(400)
+            .json({ message: "You are not following this user" });
+        }
+        //remove the user from the following list
+        currentUser.following.pull(userIdToUnfollow);
+        userToUnfollow.followers.pull(currentUserId);
+        await currentUser.save();
+        await userToUnfollow.save();
+        res.status(200).json({
+          message: `You have unfollowed ${userToUnfollow.username}`,
+          followingCount: currentUser.following.length,
+          followersCount: userToUnfollow.followers.length,
+        });
+    } catch (error) {
+      console.error("Error unfollowing user:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 module.exports = {
   registerUser,
