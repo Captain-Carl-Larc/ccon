@@ -31,12 +31,10 @@ const UserSchema = new Schema(
     },
     fullName: {
       type: String,
-      required: [true, "Full name is required"],
       trim: true,
     },
     university: {
       type: String,
-      required: [true, "University is required"],
       trim: true,
     },
     course: {
