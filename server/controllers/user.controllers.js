@@ -1,5 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const User = require("../models/user.model");
+const bcryptjs = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Import necessary controllers
 const registerUser = async (req, res) => {
@@ -25,12 +27,16 @@ const registerUser = async (req, res) => {
     });
 
     await newUser.save();
+     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+       expiresIn: "1h",
+     });
     res.status(201).json({
       message: "User registered successfully",
       user: {
         id: newUser._id,
         username: newUser.username,
         email: newUser.email,
+        token: token, // Placeholder for token, implement JWT or session logic as needed
       },
     });
     //generate a token or perform any other post-registration logic here
@@ -61,13 +67,17 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
     // Generate a token or perform any other post-login logic here
+    // Generate a token after successful login
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
     res.status(200).json({
       message: "Login successful",
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        token: null, // Placeholder for token, implement JWT or session logic as needed
+        token: token, // Placeholder for token, implement JWT or session logic as needed
       },
     });
   } catch (error) {
