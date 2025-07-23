@@ -10,6 +10,12 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  // Check if the user already exists
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ message: "User already exists" });
+  }
+
   //attempt to create a new user
   try {
     const newUser = new User({
@@ -34,6 +40,7 @@ const registerUser = async (req, res) => {
   }
 };
 
+//go ahead and login
 //login logic
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
@@ -43,43 +50,30 @@ const loginUser = async (req, res) => {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-  //go ahead and login
-  //login logic
-  const loginUser = async (req, res) => {
-    const { email, password } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
+  //goa head and login
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-
-    //goa head and login
-    try {
-      const user = await User.findOne({ email });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-      // Generate a token or perform any other post-login logic here
-      res.status(200).json({
-        message: "Login successful",
-        user: {
-          id: user._id,
-          username: user.username,
-          email: user.email,
-          token: null, // Placeholder for token, implement JWT or session logic as needed
-        },
-      });
-    } catch (error) {
-      console.error("Error logging in user:", error);
-      res.status(500).json({ message: "Internal server error" });
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
-  };
+    // Generate a token or perform any other post-login logic here
+    res.status(200).json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        token: null, // Placeholder for token, implement JWT or session logic as needed
+      },
+    });
+  } catch (error) {
+    console.error("Error logging in user:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 //GET USER PROFILE
@@ -246,56 +240,56 @@ const followUser = async (req, res) => {
 
 //unfollow user
 const unfollowUser = async (req, res) => {
-    const userIdToUnfollow = req.params.body;
-    const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
+  const userIdToUnfollow = req.params.body;
+  const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
 
-    //check the id
-    if (!mongoose.Types.ObjectId.isValid(userIdToUnfollow)) {
-      return res.status(400).json({
-        message: `${userIdToUnfollow} is an invalid id.`,
-      });
-    }
-    if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
-      return res.status(400).json({
-        message: `${currentUserId} is an invalid id.`,
-      });
+  //check the id
+  if (!mongoose.Types.ObjectId.isValid(userIdToUnfollow)) {
+    return res.status(400).json({
+      message: `${userIdToUnfollow} is an invalid id.`,
+    });
+  }
+  if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
+    return res.status(400).json({
+      message: `${currentUserId} is an invalid id.`,
+    });
+  }
+
+  //check if the user is trying to unfollow themselves
+  if (userIdToUnfollow === currentUserId) {
+    return res.status(400).json({ message: "You cannot unfollow yourself" });
+  }
+  //try catch block to handle errors
+  try {
+    //get existing values of the user
+    const currentUser = await User.findById(currentUserId);
+    const userToUnfollow = await User.findById(userIdToUnfollow);
+    //see if both users exist
+    if (!currentUser || !userToUnfollow) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    //check if the user is trying to unfollow themselves
-    if (userIdToUnfollow === currentUserId) {
-      return res.status(400).json({ message: "You cannot unfollow yourself" });
+    //check if the user is already following
+    if (!currentUser.following.includes(userIdToUnfollow)) {
+      return res
+        .status(400)
+        .json({ message: "You are not following this user" });
     }
-    //try catch block to handle errors
-    try {
-      //get existing values of the user
-      const currentUser = await User.findById(currentUserId);
-      const userToUnfollow = await User.findById(userIdToUnfollow);
-        //see if both users exist
-        if (!currentUser || !userToUnfollow) {
-          return res.status(404).json({ message: "User not found" });
-        }   
-
-        //check if the user is already following
-        if (!currentUser.following.includes(userIdToUnfollow)) {
-          return res
-            .status(400)
-            .json({ message: "You are not following this user" });
-        }
-        //remove the user from the following list
-        currentUser.following.pull(userIdToUnfollow);
-        userToUnfollow.followers.pull(currentUserId);
-        await currentUser.save();
-        await userToUnfollow.save();
-        res.status(200).json({
-          message: `You have unfollowed ${userToUnfollow.username}`,
-          followingCount: currentUser.following.length,
-          followersCount: userToUnfollow.followers.length,
-        });
-    } catch (error) {
-      console.error("Error unfollowing user:", error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-}
+    //remove the user from the following list
+    currentUser.following.pull(userIdToUnfollow);
+    userToUnfollow.followers.pull(currentUserId);
+    await currentUser.save();
+    await userToUnfollow.save();
+    res.status(200).json({
+      message: `You have unfollowed ${userToUnfollow.username}`,
+      followingCount: currentUser.following.length,
+      followersCount: userToUnfollow.followers.length,
+    });
+  } catch (error) {
+    console.error("Error unfollowing user:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 module.exports = {
   registerUser,
@@ -304,4 +298,5 @@ module.exports = {
   updateProfile,
   followUser,
   getUserProfile,
-  unfollowUser,};
+  unfollowUser,
+};
