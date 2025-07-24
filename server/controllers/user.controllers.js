@@ -145,7 +145,15 @@ const updateProfile = async (req, res) => {
     //check email and username
     const existingUser = await User.find({ $or: [{ email }, { username }] });
     if (existingUser.length > 0) {
-      return res.status(400).json({ message: "Email or username already exists" });
+      //check if the email and username belongs to current user
+      const isCurrentUser = existingUser.some(
+        (user) => user._id.toString() === userId.toString()
+      );
+      if (!isCurrentUser) {
+        return res.status(400).json({
+          message: "Email or username already exists",
+        });
+      }
     }
 
     // perform update
@@ -175,7 +183,7 @@ const updateProfile = async (req, res) => {
 
 //get a user's profile
 const getUserProfile = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req.params.id;
 
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
@@ -188,33 +196,36 @@ const getUserProfile = async (req, res) => {
   try {
     const user = await User.findById(userId)
       .select("-password") // Exclude password from the response
-      .populate("followers following", "username email") // Populate followers and following with username and email
+      .populate("followers following", "username email fullName") // Populate followers and following with username and email
       .exec();
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+      // Check if user exists
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
+      // Return user profile data
     res.status(200).json({
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-        university: user.university,
-        course: user.course,
-        bio: user.bio,
-        profilePicture: user.profilePicture,
-        coverPhoto: user.coverPhoto,
-        followersCount: user.followers.length,
-        followingCount: user.following.length,
-      },
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      fullname: user.fullName,
+      university: user.university,
+      course: user.course,
+      bio: user.bio,
+      profilePicture: user.profilePicture,
+      coverPhoto: user.coverPhoto,
+      followersCount: user.followers.length,
+      followingCount: user.following.length,
     });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
 
 //follow user
 const followUser = async (req, res) => {
