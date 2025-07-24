@@ -10,6 +10,7 @@ const {
   followUser,
   getUserProfile,
   unfollowUser,
+  getAllUsers,
 } = require("../controllers/user.controllers");
 
 // User registration route
@@ -18,6 +19,8 @@ router.post('/auth/register', registerUser);
 // User login route
 router.post('/auth/login', loginUser);
 
+// Get all users route
+router.get('/all', AuthMiddleware, getAllUsers);
 
 // Get own profile route
 router.get('/profile',AuthMiddleware, getOwnProfile);
