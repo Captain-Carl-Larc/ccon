@@ -1,3 +1,4 @@
+const  mongoose  = require("mongoose");
 const Post = require("../models/post.model");
 const User = require("../models/user.model");
 
@@ -126,9 +127,40 @@ const getOwnPosts = async (req, res) => {
       .json({ message: "Error fetching user's posts", error: error.message });
   }
 };
+
+//GET USER POSTS BY ID
+const getPostsOfUserById = async(req,res)=>{
+    const userId = req.params.id; // Get user ID from request parameters
+
+    //validate id presence
+    if (!userId.trim()) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+    //validate id type
+    if(!mongoose.Types.ObjectId.isValid(userId)){
+        return res.status(400).json({message:"Invalid user ID"})
+    }
+
+    try {
+        const posts = await Post.find({ user: userId })
+            .populate("user", "username profilePicture")
+            .sort({ createdAt: -1 });
+
+        // Check if posts are found
+        if (!posts || posts.length === 0) {
+            return res.status(404).json({ message: "No posts found for this user" });
+        }
+
+        res.status(200).json(posts);
+    } catch (error) {
+        console.error("Error fetching user's posts:", error);
+        res.status(500).json({ message: "Error fetching user's posts", error: error.message });
+    }
+}
 //export the controller functions
 module.exports = {
   createPost,
   seeAllPosts,
-    getOwnPosts,
+  getOwnPosts,
+  getPostsOfUserById,
 };
