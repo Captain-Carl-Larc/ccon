@@ -6,7 +6,8 @@ const adminAuthMiddleware = require('../middleware/admin.auth.middleware'); // M
 const {
   createPost,
   seeAllPosts,
-} = require('../controllers/blog.controllers');
+  getOwnPosts,
+} = require("../controllers/blog.controllers");
 
 // Route to create a new post (protected route)
 router.post('/create', AuthMiddleware, createPost);
@@ -14,7 +15,8 @@ router.post('/create', AuthMiddleware, createPost);
 // Route to see all posts (public route)
 router.get('/all', seeAllPosts);
 
-
+// Route to get posts of the logged-in user (protected route)
+router.get('/own', AuthMiddleware, getOwnPosts);
 
 // Export the router
 module.exports = router;

@@ -102,8 +102,33 @@ const seeAllPosts = async (req, res) => {
   }
 };
 
+//GET POSTS OF A USER WHO IS LOGGED IN
+const getOwnPosts = async (req, res) => {
+  try {
+    const userId = req.user._id; // Assuming user ID is stored in req.user after authentication
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const posts = await Post.find({ user: userId })
+      .populate("user", "username profilePicture")
+      .sort({ createdAt: -1 });
+
+    // Check if posts are found
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this user" });
+    }
+    res.status(200).json(posts);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching user's posts", error: error.message });
+  }
+};
 //export the controller functions
 module.exports = {
   createPost,
   seeAllPosts,
+    getOwnPosts,
 };
