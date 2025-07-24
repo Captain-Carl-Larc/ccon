@@ -121,6 +121,7 @@ const getOwnProfile = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
     res.status(200).json({
+      message: "User profile fetched successfully",
       user: {
         id: user._id,
         username: user.username,
@@ -129,6 +130,12 @@ const getOwnProfile = async (req, res) => {
         university: user.university,
         course: user.course,
         bio: user.bio,
+        role: user.role,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        followers: user.followers,
+        following: user.following,
         profilePicture: user.profilePicture,
         coverPhoto: user.coverPhoto,
         followersCount: user.followers.length,
@@ -154,7 +161,7 @@ const updateProfile = async (req, res) => {
   }
 
   try {
-    const { fullName, university, course, bio ,email,username,password} = req.body;
+    const { fullName, university, course, bio ,role,email,username,password} = req.body;
 
     //check email and username
     const existingUser = await User.find({ $or: [{ email }, { username }] });
@@ -173,7 +180,7 @@ const updateProfile = async (req, res) => {
     // perform update
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { fullName, university, course, bio, email, username, password }, // Password will be hashed in the pre-save hook
+      { fullName, university, course, bio,role, email, username, password }, // Password will be hashed in the pre-save hook
       { new: true, runValidators: true }
     ).select("-password"); // Exclude password from the response
 
