@@ -13,3 +13,8 @@ router.post('/create', AuthMiddleware, createPost);
 
 // Route to see all posts (public route)
 router.get('/all', seeAllPosts);
+
+
+
+// Export the router
+module.exports = router;

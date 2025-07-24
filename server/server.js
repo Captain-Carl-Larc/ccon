@@ -5,6 +5,7 @@ const connectDb = require("./config/db"); // Assuming './config/db.js' contains 
 
 // Import routes
 const userRoutes = require("./routes/user.routes");
+const postRoutes = require("./routes/post.routes"); // Assuming you have a post routes file
 
 
 
@@ -20,6 +21,7 @@ app.use(express.json());
 
 //mount user routes
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes); // Mount post routes
 
 
 // Variables from environment
