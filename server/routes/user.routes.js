@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const AuthMiddleware = require('../middleware/auth.middleware'); // Assuming you have an auth middleware for protected routes
 // Import user controllers
 const {
   registerUser,
@@ -20,10 +20,10 @@ router.post('/auth/login', loginUser);
 
 
 // Get own profile route
-router.get('/profile', getOwnProfile);
+router.get('/profile',AuthMiddleware, getOwnProfile);
 
 // Update profile route
-router.put('/profile', updateProfile);
+router.put('/profile',AuthMiddleware, updateProfile);
 
 // Follow user route
 router.post('/follow/:userId', followUser);
