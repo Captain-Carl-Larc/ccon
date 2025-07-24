@@ -69,6 +69,13 @@ const createPost = async (req, res) => {
 
     await newPost.save();
     res.status(201).json(newPost);
+
+    // Optionally, you can also update the user's posts array if needed
+    await User.findByIdAndUpdate(
+      userId,
+      { $push: { posts: newPost._id } },
+      { new: true }
+    );
   } catch (error) {
     res
       .status(500)
