@@ -287,8 +287,8 @@ const followUser = async (req, res) => {
 
 //unfollow user
 const unfollowUser = async (req, res) => {
-  const userIdToUnfollow = req.params.body;
-  const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
+  const userIdToUnfollow = req.params.userId;
+  const currentUserId = req.user._id; // Assuming you have user ID from auth middleware
 
   //check the id
   if (!mongoose.Types.ObjectId.isValid(userIdToUnfollow)) {
