@@ -88,7 +88,7 @@ const loginUser = async (req, res) => {
 
 //GET USER PROFILE
 const getOwnProfile = async (req, res) => {
-  const userId = req.params.id;
+  const userId = req.user._id;
 
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
@@ -103,6 +103,24 @@ const getOwnProfile = async (req, res) => {
       .select("-password") // Exclude password from the response
       .populate("followers following", "username email") // Populate followers and following with username and email
       .exec();
+      if(!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+    res.status(200).json({
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        university: user.university,
+        course: user.course,
+        bio: user.bio,
+        profilePicture: user.profilePicture,
+        coverPhoto: user.coverPhoto,
+        followersCount: user.followers.length,
+        followingCount: user.following.length,
+      },
+    });
   } catch (error) {
     console.error("Error fetching user profile:", error);
     res.status(500).json({ message: "Internal server error" });
