@@ -129,7 +129,7 @@ const getOwnProfile = async (req, res) => {
 
 //update user profile
 const updateProfile = async (req, res) => {
-  const userId = req.params.userId;
+  const userId = req.user._id;
 
   if (!userId) {
     return res.status(400).json({ message: "User ID is required" });
@@ -140,12 +140,18 @@ const updateProfile = async (req, res) => {
   }
 
   try {
-    const { fullName, university, course, bio } = req.body;
+    const { fullName, university, course, bio ,email,username,password} = req.body;
+
+    //check email and username
+    const existingUser = await User.find({ $or: [{ email }, { username }] });
+    if (existingUser.length > 0) {
+      return res.status(400).json({ message: "Email or username already exists" });
+    }
 
     // perform update
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { fullName, university, course, bio },
+      { fullName, university, course, bio, email, username, password }, // Password will be hashed in the pre-save hook
       { new: true, runValidators: true }
     ).select("-password"); // Exclude password from the response
 
