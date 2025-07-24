@@ -1,4 +1,4 @@
-const  mongoose  = require("mongoose");
+const mongoose = require("mongoose");
 const Post = require("../models/post.model");
 const User = require("../models/user.model");
 
@@ -129,64 +129,136 @@ const getOwnPosts = async (req, res) => {
 };
 
 //GET USER POSTS BY ID
-const getPostsOfUserById = async(req,res)=>{
-    const userId = req.params.id; // Get user ID from request parameters
+const getPostsOfUserById = async (req, res) => {
+  const userId = req.params.id; // Get user ID from request parameters
 
-    //validate id presence
-    if (!userId.trim()) {
-      return res.status(400).json({ message: "User ID is required" });
+  //validate id presence
+  if (!userId.trim()) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+  //validate id type
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json({ message: "Invalid user ID" });
+  }
+
+  try {
+    const posts = await Post.find({ user: userId })
+      .populate("user", "username profilePicture")
+      .sort({ createdAt: -1 });
+
+    // Check if posts are found
+    if (!posts || posts.length === 0) {
+      return res.status(404).json({ message: "No posts found for this user" });
     }
-    //validate id type
-    if(!mongoose.Types.ObjectId.isValid(userId)){
-        return res.status(400).json({message:"Invalid user ID"})
-    }
 
-    try {
-        const posts = await Post.find({ user: userId })
-            .populate("user", "username profilePicture")
-            .sort({ createdAt: -1 });
-
-        // Check if posts are found
-        if (!posts || posts.length === 0) {
-            return res.status(404).json({ message: "No posts found for this user" });
-        }
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error("Error fetching user's posts:", error);
-        res.status(500).json({ message: "Error fetching user's posts", error: error.message });
-    }
-}
+    res.status(200).json(posts);
+  } catch (error) {
+    console.error("Error fetching user's posts:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching user's posts", error: error.message });
+  }
+};
 
 //GET POST BY ITS ID
-const getSinglePost = async(req,res)=>{
-    const postId = req.params.id; // Get post ID from request parameters
+const getSinglePost = async (req, res) => {
+  const postId = req.params.id; // Get post ID from request parameters
 
-    if(!postId.trim()) {
-      return res.status(400).json({ message: "Post ID is required" });
+  if (!postId.trim()) {
+    return res.status(400).json({ message: "Post ID is required" });
+  }
+  //validate id type
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return res.status(400).json({ message: "Invalid post ID" });
+  }
+
+  try {
+    const post = await Post.findById(postId)
+      .populate("user", "username profilePicture")
+      .populate("comments.user", "username profilePicture")
+      .sort({ createdAt: -1 });
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
-    //validate id type
-    if(!mongoose.Types.ObjectId.isValid(postId)){
-        return res.status(400).json({message:"Invalid post ID"})
+
+    res.status(200).json(post);
+  } catch (error) {
+    console.error("Error fetching post:", error);
+    res
+      .status(500)
+      .json({ message: "Error fetching post", error: error.message });
+  }
+};
+
+//LIKE POST
+// const likePost = async(req,res)=>{
+//     const postId = req.params.id; // Get post ID from request parameters
+//     const userId = req.user._id; // Assuming user ID is stored in req.user after authentication
+
+//     if(!postId.trim()) {
+//       return res.status(400).json({ message: "Post ID is required" });
+//     }
+//     //validate id type
+//     if(!mongoose.Types.ObjectId.isValid(postId)){
+//         return res.status(400).json({message:"Invalid post ID"})
+//     }
+
+//     try {
+//         const post = await Post.findById(postId);
+//         if (!post) {
+//             return res.status(404).json({ message: "Post not found" });
+//         }
+
+//         // Check if the user has already liked the post
+//         if (post.likes.includes(userId)) {
+//             return res.status(400).json({ message: "You have already liked this post" });
+//         }
+
+//         // Add the user's ID to the likes array
+//         post.likes.push(userId);
+//         await post.save();
+
+//         res.status(200).json({ message: "Post liked successfully", post });
+//     } catch (error) {
+//         console.error("Error liking post:", error);
+//         res.status(500).json({ message: "Error liking post", error: error.message });
+//     }
+// }
+
+//ADMIN DELETE POST
+const deletePost = async (req, res) => {
+  const postId = req.params.id; // Get post ID from request parameters
+  if (!postId.trim()) {
+    return res.status(400).json({ message: "Post ID is required" });
+  }
+  //validate id type
+  if (!mongoose.Types.ObjectId.isValid(postId)) {
+    return res.status(400).json({ message: "Invalid post ID" });
+  }
+
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
     }
 
-    try {
-        const post = await Post.findById(postId)
-            .populate("user", "username profilePicture")
-            .populate("comments.user", "username profilePicture")
-            .sort({ createdAt: -1 });
-
-            if (!post) {
-                return res.status(404).json({ message: "Post not found" });
-            }
-
-            res.status(200).json(post);
-    } catch (error) {
-        console.error("Error fetching post:", error);
-        res.status(500).json({ message: "Error fetching post", error: error.message });
-        
+    const deletedPost = await Post.findByIdAndDelete(postId);
+    if (!deletedPost) {
+      return res
+        .status(404)
+        .json({ message: "Post not found or already deleted" });
     }
-}
+    res
+      .status(200)
+      .json({ message: "Post deleted successfully", post: deletedPost });
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    res
+      .status(500)
+      .json({ message: "Error deleting post", error: error.message });
+  }
+};
 //export the controller functions
 module.exports = {
   createPost,
@@ -194,4 +266,5 @@ module.exports = {
   getOwnPosts,
   getPostsOfUserById,
   getSinglePost,
+  deletePost,
 };
