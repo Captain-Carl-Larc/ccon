@@ -26,13 +26,13 @@ router.get('/profile',AuthMiddleware, getOwnProfile);
 router.put('/profile',AuthMiddleware, updateProfile);
 
 // Follow user route
-router.post('/follow/:userId', followUser);
+router.post('/follow/:userId',AuthMiddleware, followUser);
 
-// Get user profile by username
-router.get("/profile/:userId", getUserProfile);
+// Get user profile by id
+router.get("/profile/:id", AuthMiddleware,getUserProfile);
 
 // Unfollow user route
-router.delete('/unfollow/:userId', unfollowUser);
+router.delete('/unfollow/:userId',AuthMiddleware, unfollowUser);
 
 // Export the router
 module.exports = router;
