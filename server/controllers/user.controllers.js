@@ -85,7 +85,21 @@ const loginUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-
+//ADMIN CONTROLLER TO GET ALL USERS
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select("-password"); // Exclude password from the response
+    if (users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    // Return the list of users
+    
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 //GET USER PROFILE
 const getOwnProfile = async (req, res) => {
   const userId = req.user._id;
@@ -346,4 +360,5 @@ module.exports = {
   followUser,
   getUserProfile,
   unfollowUser,
+  getAllUsers,
 };
