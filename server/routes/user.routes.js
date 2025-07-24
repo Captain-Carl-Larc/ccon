@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const AuthMiddleware = require('../middleware/auth.middleware'); // Assuming you have an auth middleware for protected routes
+const adminAuthMiddleware = require('../middleware/admin.auth.middleware'); // Middleware for admin access
 // Import user controllers
 const {
   registerUser,
@@ -20,7 +21,7 @@ router.post('/auth/register', registerUser);
 router.post('/auth/login', loginUser);
 
 // Get all users route
-router.get('/all', AuthMiddleware, getAllUsers);
+router.get("/all", adminAuthMiddleware, getAllUsers);
 
 // Get own profile route
 router.get('/profile',AuthMiddleware, getOwnProfile);
