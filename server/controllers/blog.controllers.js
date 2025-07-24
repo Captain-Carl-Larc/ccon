@@ -157,10 +157,41 @@ const getPostsOfUserById = async(req,res)=>{
         res.status(500).json({ message: "Error fetching user's posts", error: error.message });
     }
 }
+
+//GET POST BY ITS ID
+const getSinglePost = async(req,res)=>{
+    const postId = req.params.id; // Get post ID from request parameters
+
+    if(!postId.trim()) {
+      return res.status(400).json({ message: "Post ID is required" });
+    }
+    //validate id type
+    if(!mongoose.Types.ObjectId.isValid(postId)){
+        return res.status(400).json({message:"Invalid post ID"})
+    }
+
+    try {
+        const post = await Post.findById(postId)
+            .populate("user", "username profilePicture")
+            .populate("comments.user", "username profilePicture")
+            .sort({ createdAt: -1 });
+
+            if (!post) {
+                return res.status(404).json({ message: "Post not found" });
+            }
+
+            res.status(200).json(post);
+    } catch (error) {
+        console.error("Error fetching post:", error);
+        res.status(500).json({ message: "Error fetching post", error: error.message });
+        
+    }
+}
 //export the controller functions
 module.exports = {
   createPost,
   seeAllPosts,
   getOwnPosts,
   getPostsOfUserById,
+  getSinglePost,
 };

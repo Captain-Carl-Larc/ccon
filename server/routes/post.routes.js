@@ -8,6 +8,7 @@ const {
   getPostsOfUserById,
   seeAllPosts,
   getOwnPosts,
+  getSinglePost,
 } = require("../controllers/blog.controllers");
 
 // Route to create a new post (protected route)
@@ -21,5 +22,8 @@ router.get('/own', AuthMiddleware, getOwnPosts);
 
 // Route to get posts of a user by ID (private route)
 router.get('/user/:id', AuthMiddleware, getPostsOfUserById);
+
+// Route to get a single post by ID (private route)
+router.get('/post/:id', AuthMiddleware, getSinglePost);
 // Export the router
 module.exports = router;
