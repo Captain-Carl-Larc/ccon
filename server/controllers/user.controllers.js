@@ -224,14 +224,16 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-
-
-
 //follow user
 const followUser = async (req, res) => {
-  const userIdToFollow = req.params.body;
+  const userIdToFollow = req.params.userId;
   const currentUserId = req.user.id; // Assuming you have user ID from auth middleware
 
+
+  //check if userIdToFollow and currentUserId are provided
+  if (!userIdToFollow || !currentUserId) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
   //check the id
   if (!mongoose.Types.ObjectId.isValid(userIdToFollow)) {
     res.status(400).json({
