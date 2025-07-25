@@ -63,12 +63,31 @@ export const registerUser = async (username, email, password) => {
     return data;
     //return success message
   } catch (error) {
-
-    if(error.status === 400) {
+    if (error.status === 400) {
       throw new Error("Invalid input data");
     }
-    if(error.status === 409) {
+    if (error.status === 409) {
       throw new Error("User already exists");
+    }
+    console.error(error);
+    throw error;
+  }
+};
+
+export const loginUser = async (email, password) => {
+  try {
+    const data = await request(`${API_BASE_URL}/users/auth/login`, "POST", {
+      email,
+      password,
+    });
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return data;
+  } catch (error) {
+    if (error.status === 401) {
+      throw new Error("Invalid credentials");
     }
     console.error(error);
     throw error;
@@ -83,5 +102,3 @@ export const createPost = (postData) => {
     throw error;
   }
 };
-
-
