@@ -58,19 +58,22 @@ export const registerUser = async (username, email, password) => {
       password,
     });
 
-    if (data.error) {
-      throw new Error(data.error);
-    }
     return data;
-    //return success message
   } catch (error) {
+    // Handle specific HTTP status codes with fallback to server message
     if (error.status === 400) {
-      throw new Error("Invalid input data");
+      throw new Error(
+        error.serverResponse?.message || "Invalid registration data"
+      );
     }
     if (error.status === 409) {
-      throw new Error("User already exists");
+      throw new Error(error.serverResponse?.message || "User already exists");
     }
-    console.error(error);
+    if (error.status === 500) {
+      throw new Error("Server error. Please try again later.");
+    }
+
+    // For other errors, preserve the original error
     throw error;
   }
 };
