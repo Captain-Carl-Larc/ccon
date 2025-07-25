@@ -203,3 +203,28 @@ export const getMyPosts = async (page = 1, limit = 10) => {
     throw error;
   }
 };
+
+//get posts of user by id
+export const getPostsOfUserById = async (userId, page = 1, limit = 10) => {
+  if (!userId) {
+    throw new Error("User ID is required");
+  }
+
+  try {
+    const queryParams = new URLSearchParams({ page, limit });
+    return await request(
+      `${API_BASE_URL}/posts/user/${userId}?${queryParams}`,
+      "GET",
+      null,
+      true
+    );
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error("User not found or has no posts");
+    }
+    if (error.status === 401) {
+      throw new Error("Please log in to view user posts");
+    }
+    throw error;
+  }
+};
