@@ -122,11 +122,25 @@ export const getAllUsers = async (page = 1, limit = 10) => {
   );
 };
 //create post func
-export const createPost = (postData) => {
+export const createPost = async (postData) => {
   try {
-    request(`${API_BASE_URL}/posts/create`, "POST", postData, true);
+    const data = await request(
+      `${API_BASE_URL}/posts/create`,
+      "POST",
+      postData,
+      true
+    );
+    return data;
   } catch (error) {
-    console.error(error);
+    if (error.status === 400) {
+      throw new Error(error.serverResponse?.message || "Invalid post data");
+    }
+    if (error.status === 401) {
+      throw new Error("Please log in to create posts");
+    }
+    if (error.status === 413) {
+      throw new Error("Post content is too large");
+    }
     throw error;
   }
 };
