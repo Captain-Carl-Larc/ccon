@@ -39,9 +39,19 @@ const request = async (url, method, data = null, requireAuth = false) => {
     if (!response.ok) {
       const error = new Error(result.message || "could not succeed");
       error.status = response.status;
-      error.serverResponse = result
+      error.serverResponse = result;
     }
     return result;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+//create post func
+const createPost = (postData) => {
+  try {
+    request(`${API_BASE_URL}/posts/create`, "POST", postData, true);
   } catch (error) {
     console.error(error);
     throw error;
