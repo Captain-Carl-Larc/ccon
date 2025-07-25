@@ -228,3 +228,32 @@ export const getPostsOfUserById = async (userId, page = 1, limit = 10) => {
     throw error;
   }
 };
+
+//delete post
+export const deletePost = async (postId) => {
+  if (!postId) {
+    throw new Error("Post ID is required");
+  }
+
+  try {
+    return await request(
+      `${API_BASE_URL}/posts/delete/${postId}`,
+      "DELETE",
+      null,
+      true
+    );
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error("Post not found");
+    }
+    if (error.status === 401) {
+      throw new Error("Please log in to delete posts");
+    }
+    if (error.status === 403) {
+      throw new Error(
+        "You don't have permission to delete this post (Admin only)"
+      );
+    }
+    throw error;
+  }
+};
