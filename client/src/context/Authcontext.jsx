@@ -99,31 +99,6 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/login";
   };
 
-  // Better logout with React Router (if you're using it)
-  const logoutWithRouter = (navigate) => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setLoading(false);
-
-    if (navigate) {
-      navigate("/login");
-    } else {
-      window.location.href = "/login";
-    }
-  };
-
-  // Check if user is authenticated
-  const isAuthenticated = () => {
-    return !!(user && token);
-  };
-
-  // Check if user is admin (assuming your user object has a role field)
-  const isAdmin = () => {
-    return user?.role === "admin" || user?.isAdmin === true;
-  };
-
   const authContextValue = {
     user,
     token,
@@ -131,14 +106,12 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     logout,
-    logoutWithRouter, // Alternative logout for React Router
-    isAuthenticated,
-    isAdmin,
+    isAuthenticated: !!(token && user),
   };
 
   return (
     <AuthContext.Provider value={authContextValue}>
-      {children}
+      return ({loading ? <div>Loading...</div> : children} )
     </AuthContext.Provider>
   );
 };
@@ -151,5 +124,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
-
