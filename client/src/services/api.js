@@ -163,3 +163,25 @@ export const getAllPosts = async (page = 1, limit = 10) => {
     throw error;
   }
 };
+
+//get post by id
+export const getPostById = async (postId) => {
+  if (!postId) {
+    throw new Error("Post ID is required");
+  }
+
+  try {
+    return await request(`${API_BASE_URL}/posts/${postId}`, "GET", null, true);
+  } catch (error) {
+    if (error.status === 404) {
+      throw new Error("Post not found");
+    }
+    if (error.status === 401) {
+      throw new Error("Please log in to view this post");
+    }
+    if (error.status === 403) {
+      throw new Error("You don't have permission to view this post");
+    }
+    throw error;
+  }
+};
