@@ -144,3 +144,22 @@ export const createPost = async (postData) => {
     throw error;
   }
 };
+
+
+//get all posts
+export const getAllPosts = async (page = 1, limit = 10) => {
+  try {
+    const queryParams = new URLSearchParams({ page, limit });
+    return await request(
+      `${API_BASE_URL}/posts/all?${queryParams}`,
+      "GET",
+      null,
+      true
+    );
+  } catch (error) {
+    if (error.status === 401) {
+      throw new Error("Please log in to view posts");
+    }
+    throw error;
+  }
+};
