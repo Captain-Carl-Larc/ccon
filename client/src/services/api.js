@@ -73,7 +73,7 @@ export const registerUser = async (username, email, password) => {
     throw error;
   }
 };
-
+//login user
 export const loginUser = async (email, password) => {
   try {
     const data = await request(`${API_BASE_URL}/users/auth/login`, "POST", {
@@ -89,6 +89,17 @@ export const loginUser = async (email, password) => {
     if (error.status === 401) {
       throw new Error("Invalid credentials");
     }
+    console.error(error);
+    throw error;
+  }
+};
+
+//get all users
+export const getAllUsers = async () => {
+  try {
+    const data = await request(`${API_BASE_URL}/users/all`, "GET", null, true);
+    return data;
+  } catch (error) {
     console.error(error);
     throw error;
   }
