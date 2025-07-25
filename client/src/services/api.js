@@ -185,3 +185,21 @@ export const getPostById = async (postId) => {
     throw error;
   }
 };
+
+//get posts of loggen in user
+export const getMyPosts = async (page = 1, limit = 10) => {
+  try {
+    const queryParams = new URLSearchParams({ page, limit });
+    return await request(
+      `${API_BASE_URL}/posts/own?${queryParams}`,
+      "GET",
+      null,
+      true
+    );
+  } catch (error) {
+    if (error.status === 401) {
+      throw new Error("Please log in to view your posts");
+    }
+    throw error;
+  }
+};
