@@ -112,14 +112,14 @@ export const loginUser = async (email, password) => {
 };
 
 //get all users
-export const getAllUsers = async () => {
-  try {
-    const data = await request(`${API_BASE_URL}/users/all`, "GET", null, true);
-    return data;
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+export const getAllUsers = async (page = 1, limit = 10) => {
+  const queryParams = new URLSearchParams({ page, limit });
+  return await request(
+    `${API_BASE_URL}/users/all?${queryParams}`,
+    "GET",
+    null,
+    true
+  );
 };
 //create post func
 export const createPost = (postData) => {
