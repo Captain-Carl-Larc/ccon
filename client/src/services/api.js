@@ -48,8 +48,34 @@ const request = async (url, method, data = null, requireAuth = false) => {
   }
 };
 
+//USER REQUESTS
+export const registerUser = async (username, email, password) => {
+  try {
+    const data = await request(`${API_BASE_URL}/users/auth/register`, "POST", {
+      username,
+      email,
+      password,
+    });
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return data;
+    //return success message
+  } catch (error) {
+
+    if(error.status === 400) {
+      throw new Error("Invalid input data");
+    }
+    if(error.status === 409) {
+      throw new Error("User already exists");
+    }
+    console.error(error);
+    throw error;
+  }
+};
 //create post func
-const createPost = (postData) => {
+export const createPost = (postData) => {
   try {
     request(`${API_BASE_URL}/posts/create`, "POST", postData, true);
   } catch (error) {
@@ -57,3 +83,5 @@ const createPost = (postData) => {
     throw error;
   }
 };
+
+
