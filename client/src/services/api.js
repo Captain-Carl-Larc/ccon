@@ -40,6 +40,7 @@ const request = async (url, method, data = null, requireAuth = false) => {
       const error = new Error(result.message || "could not succeed");
       error.status = response.status;
       error.serverResponse = result;
+      throw error
     }
     return result;
   } catch (error) {
