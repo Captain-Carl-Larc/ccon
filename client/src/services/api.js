@@ -85,15 +85,28 @@ export const loginUser = async (email, password) => {
       password,
     });
 
-    if (data.error) {
-      throw new Error(data.error);
+    // Store token if login successful
+    if (data.token) {
+      localStorage.setItem("token", data.token);
     }
+
     return data;
   } catch (error) {
     if (error.status === 401) {
-      throw new Error("Invalid credentials");
+      throw new Error(
+        error.serverResponse?.message || "Invalid email or password"
+      );
     }
-    console.error(error);
+    if (error.status === 400) {
+      throw new Error(
+        error.serverResponse?.message ||
+          "Please provide valid email and password"
+      );
+    }
+    if (error.status === 500) {
+      throw new Error("Login service temporarily unavailable");
+    }
+
     throw error;
   }
 };
